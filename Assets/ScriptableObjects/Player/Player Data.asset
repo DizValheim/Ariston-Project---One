@@ -23,7 +23,7 @@ MonoBehaviour:
   bottomClamp: -30
   groundLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 64
   gravity: -15
   groundedOffset: -0.14
   groundedRadius: 0.28
