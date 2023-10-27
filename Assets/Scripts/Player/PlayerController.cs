@@ -144,7 +144,7 @@ namespace Ariston
             _hasAnimator = TryGetComponent(out _animator);
 
             _currentState.UpdateStates();
-            Debug.Log("Current State: " + CurrentState);
+            // Debug.Log("Current State: " + CurrentState);
 
             // JumpAndGravity();
             GroundedCheck();
