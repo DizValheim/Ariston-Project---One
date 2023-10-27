@@ -43,19 +43,18 @@ namespace Ariston
 
         #endregion
 
+        #region Properties
+
+        public void SetCursorLockState(bool isLocked) => Cursor.lockState = isLocked ? CursorLockMode.Locked : CursorLockMode.None;
+        public Vector2 MovementVector => PlayerInputActions.Player.Move.ReadValue<Vector2>();
+        public Vector2 LookVector => PlayerInputActions.Player.Look.ReadValue<Vector2>();
+        public Vector2 MousePosition => Mouse.current.position.ReadValue();
+        public bool IsSprintPressed => PlayerInputActions.Player.Sprint.IsPressed();
+        public bool IsJumpPressed => PlayerInputActions.Player.Jump.IsPressed();
+
+        #endregion
 
         #region Custom Functions
-
-        public Vector2 MovementVector => PlayerInputActions.Player.Move.ReadValue<Vector2>();
-
-
-        public Vector2 LookVector => PlayerInputActions.Player.Look.ReadValue<Vector2>();
-
-        public Vector2 MousePosition => Mouse.current.position.ReadValue();
-
-        public bool IsSprintPressed => PlayerInputActions.Player.Sprint.IsPressed();
-
-        public bool IsJumpPressed => PlayerInputActions.Player.Jump.IsPressed();
 
         #region Events
         private void On_Jump(InputAction.CallbackContext context)

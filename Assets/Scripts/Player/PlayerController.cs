@@ -50,7 +50,7 @@ namespace Ariston
 
         private Animator _animator;
         private CharacterController _controller;
-        // private PlayerActionMaps _input;
+        
         private GameObject _mainCamera;
 
         private const float _threshold = 0.01f;
@@ -65,8 +65,49 @@ namespace Ariston
             }
         }
 
-        public bool Grounded = true;
+        public bool IsGrounded = true;
 
+        //State Variables
+        PlayerBaseState _currentState;
+        PlayerStateFactory _states;
+
+        //Getters and Setters
+        public PlayerBaseState CurrentState {get { return _currentState; } set { _currentState = value;} }
+        
+        public float VerticalVelocity {get { return _verticalVelocity; } set { _verticalVelocity = value;} }
+        public float TerminalVelocity { get { return _terminalVelocity; } }
+        public float JumpHeight {get { return playerData.JumpHeight; } }
+        public float Gravity { get { return playerData.Gravity;} }
+        public float JumpTimeout {get { return playerData.JumpTimeout; } }
+        public float FallTimeout {get { return playerData.FallTimeout; } }
+        public float MoveSpeed { get { return playerData.MoveSpeed; } }
+        public float SprintSpeed { get {return playerData.SprintSpeed; } }
+        public float TargetSpeed { get; set;}
+        public bool HasAnimator { get { return _hasAnimator;} }
+        public Animator Animator { get { return _animator; } }
+        public int AnimIDSpeed { get { return _animIDSpeed; } }
+        public int AnimIDGrounded { get { return _animIDGrounded; } }
+        public int AnimIDJump { get { return _animIDJump; } }
+        public int AnimIDFreeFall { get { return _animIDFreeFall; } }
+        public int AnimIDMotionSpeed { get { return _animIDMotionSpeed; } }
+        public CharacterController CharacterController { get { return _controller; } }
+        public float JumpTimeoutDelta {get { return _jumpTimeoutDelta; } set { _jumpTimeoutDelta = value; } }
+        public float FallTimeoutDelta {get { return _fallTimeoutDelta; } set { _fallTimeoutDelta = value; } }
+
+
+        public bool RequireNewJumpPress {get; set;}
+
+        #region Unity Functions
+
+        private void OnEnable() 
+        {
+            GameInput.Instance.PlayerInputActions.Player.Jump.performed+=On_Jump;    
+        }
+
+        private void OnDisable() 
+        {
+            GameInput.Instance.PlayerInputActions.Player.Jump.performed-=On_Jump;    
+        }
 
         private void Awake()
         {
@@ -75,6 +116,10 @@ namespace Ariston
             {
                 _mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
             }
+
+            _states = new PlayerStateFactory(this);
+            _currentState = _states.Grounded();
+            _currentState.EnterState();
         }
 
         private void Start()
@@ -83,10 +128,11 @@ namespace Ariston
             
             _hasAnimator = TryGetComponent(out _animator);
             _controller = GetComponent<CharacterController>();
-            // _input = GetComponent<PlayerActionMaps>();
+            // _input = GetComponent<GameInput>();
             _playerInput = GetComponent<PlayerInput>();
 
             AssignAnimationIDs();
+            GameInput.Instance.SetCursorLockState(true);
 
             // reset our timeouts on start
             _jumpTimeoutDelta = playerData.JumpTimeout;
@@ -97,7 +143,10 @@ namespace Ariston
         {
             _hasAnimator = TryGetComponent(out _animator);
 
-            JumpAndGravity();
+            _currentState.UpdateStates();
+            Debug.Log("Current State: " + CurrentState);
+
+            // JumpAndGravity();
             GroundedCheck();
             Move();
         }
@@ -107,6 +156,9 @@ namespace Ariston
             CameraRotation();
         }
 
+        #endregion
+        
+        #region Custom Functions
         private void AssignAnimationIDs()
         {
             _animIDSpeed = Animator.StringToHash("Speed");
@@ -121,13 +173,13 @@ namespace Ariston
             // set sphere position, with offset
             Vector3 spherePosition = new Vector3(transform.position.x, transform.position.y - playerData.GroundedOffset,
                 transform.position.z);
-            Grounded = Physics.CheckSphere(spherePosition, playerData.GroundedRadius, playerData.GroundLayers,
+            IsGrounded = Physics.CheckSphere(spherePosition, playerData.GroundedRadius, playerData.GroundLayers,
                 QueryTriggerInteraction.Ignore);
 
             // update animator if using character
             if (_hasAnimator)
             {
-                _animator.SetBool(_animIDGrounded, Grounded);
+                _animator.SetBool(_animIDGrounded, IsGrounded);
             }
         }
 
@@ -154,29 +206,22 @@ namespace Ariston
 
         private void Move()
         {
-            // set target speed based on move speed, sprint speed and if sprint is pressed
-            float targetSpeed = GameInput.Instance.IsSprintPressed ? playerData.SprintSpeed : playerData.MoveSpeed;
-
-            // a simplistic acceleration and deceleration designed to be easy to remove, replace, or iterate upon
-
-            // note: Vector2's == operator uses approximation so is not floating point error prone, and is cheaper than magnitude
-            // if there is no input, set the target speed to 0
-            if (GameInput.Instance.MovementVector == Vector2.zero) targetSpeed = 0.0f;
+            Vector2 movementInputVector = GameInput.Instance.MovementVector;
 
             // a reference to the players current horizontal velocity
             float currentHorizontalSpeed = new Vector3(_controller.velocity.x, 0.0f, _controller.velocity.z).magnitude;
 
             float speedOffset = 0.1f;
             // float inputMagnitude = _input.analogMovement ? _input.move.magnitude : 1f;
-            float inputMagnitude = GameInput.Instance.MovementVector.magnitude;
+            float inputMagnitude = movementInputVector.magnitude;
 
             // accelerate or decelerate to target speed
-            if (currentHorizontalSpeed < targetSpeed - speedOffset ||
-                currentHorizontalSpeed > targetSpeed + speedOffset)
+            if (currentHorizontalSpeed < TargetSpeed - speedOffset ||
+                currentHorizontalSpeed > TargetSpeed + speedOffset)
             {
                 // creates curved result rather than a linear one giving a more organic speed change
                 // note T in Lerp is clamped, so we don't need to clamp our speed
-                _speed = Mathf.Lerp(currentHorizontalSpeed, targetSpeed * inputMagnitude,
+                _speed = Mathf.Lerp(currentHorizontalSpeed, TargetSpeed * inputMagnitude,
                     Time.deltaTime * playerData.SpeedChangeRate);
 
                 // round speed to 3 decimal places
@@ -184,18 +229,18 @@ namespace Ariston
             }
             else
             {
-                _speed = targetSpeed;
+                _speed = TargetSpeed;
             }
 
-            _animationBlend = Mathf.Lerp(_animationBlend, targetSpeed, Time.deltaTime * playerData.SpeedChangeRate);
+            _animationBlend = Mathf.Lerp(_animationBlend, TargetSpeed, Time.deltaTime * playerData.SpeedChangeRate);
             if (_animationBlend < 0.01f) _animationBlend = 0f;
 
             // normalise input direction
-            Vector3 inputDirection = new Vector3(GameInput.Instance.MovementVector.x, 0.0f, GameInput.Instance.MovementVector.y).normalized;
+            Vector3 inputDirection = new Vector3(movementInputVector.x, 0.0f, movementInputVector.y).normalized;
 
             // note: Vector2's != operator uses approximation so is not floating point error prone, and is cheaper than magnitude
             // if there is a move input rotate player when the player is moving
-            if (GameInput.Instance.MovementVector != Vector2.zero)
+            if (movementInputVector != Vector2.zero)
             {
                 _targetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg +
                                   _mainCamera.transform.eulerAngles.y;
@@ -205,7 +250,6 @@ namespace Ariston
                 // rotate to face input direction relative to camera position
                 transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
             }
-
 
             Vector3 targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
 
@@ -221,74 +265,17 @@ namespace Ariston
             }
         }
 
-        private void JumpAndGravity()
+
+        #endregion
+
+        #region Event Subscribers
+
+        private void On_Jump(InputAction.CallbackContext context)
         {
-            if (Grounded)
-            {
-                // reset the fall timeout timer
-                _fallTimeoutDelta = playerData.FallTimeout;
-
-                // update animator if using character
-                if (_hasAnimator)
-                {
-                    _animator.SetBool(_animIDJump, false);
-                    _animator.SetBool(_animIDFreeFall, false);
-                }
-
-                // stop our velocity dropping infinitely when grounded
-                if (_verticalVelocity < 0.0f)
-                {
-                    _verticalVelocity = -2f;
-                }
-
-                // Jump
-                if (GameInput.Instance.IsJumpPressed && _jumpTimeoutDelta <= 0.0f)
-                {
-                    // the square root of H * -2 * G = how much velocity needed to reach desired height
-                    _verticalVelocity = Mathf.Sqrt(playerData.JumpHeight * -2f * playerData.Gravity);
-
-                    // update animator if using character
-                    if (_hasAnimator)
-                    {
-                        _animator.SetBool(_animIDJump, true);
-                    }
-                }
-
-                // jump timeout
-                if (_jumpTimeoutDelta >= 0.0f)
-                {
-                    _jumpTimeoutDelta -= Time.deltaTime;
-                }
-            }
-            else
-            {
-                // reset the jump timeout timer
-                _jumpTimeoutDelta = playerData.JumpTimeout;
-
-                // fall timeout
-                if (_fallTimeoutDelta >= 0.0f)
-                {
-                    _fallTimeoutDelta -= Time.deltaTime;
-                }
-                else
-                {
-                    // update animator if using character
-                    if (_hasAnimator)
-                    {
-                        _animator.SetBool(_animIDFreeFall, true);
-                    }
-                }
-
-                // if we are not grounded, do not jump
-                // GameInput.Instance.IsJumpPressed = false;
-            }
-
-            // apply gravity over time if under terminal (multiply by delta time twice to linearly speed up over time)
-            if (_verticalVelocity < _terminalVelocity)
-            {
-                _verticalVelocity += playerData.Gravity * Time.deltaTime;
-            }
+            RequireNewJumpPress = false;
         }
+
+        #endregion
 
         private static float ClampAngle(float lfAngle, float lfMin, float lfMax)
         {
@@ -302,7 +289,7 @@ namespace Ariston
             Color transparentGreen = new Color(0.0f, 1.0f, 0.0f, 0.35f);
             Color transparentRed = new Color(1.0f, 0.0f, 0.0f, 0.35f);
 
-            if (Grounded) Gizmos.color = transparentGreen;
+            if (IsGrounded) Gizmos.color = transparentGreen;
             else Gizmos.color = transparentRed;
 
             // when selected, draw a gizmo in the position of, and matching radius of, the grounded collider
