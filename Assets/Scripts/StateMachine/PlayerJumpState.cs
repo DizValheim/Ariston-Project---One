@@ -74,11 +74,9 @@ namespace Ariston
 
         void HandleAnimation()
         {
-            // update animator if using character
-            if (Ctx.HasAnimator)
-            {
-                Ctx.Animator.SetBool(Ctx.AnimIDJump, true);
-            }
+            
+            Ctx.Animator.SetBool(Ctx.AnimIDJump, true);
+            
         }
     }
 

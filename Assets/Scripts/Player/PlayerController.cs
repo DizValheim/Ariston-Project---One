@@ -3,9 +3,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 
-/* Note: animations are called via the controller for both the character and capsule using animator null checks
- */
-
 namespace Ariston
 {
     [RequireComponent(typeof(CharacterController))]
@@ -55,8 +52,6 @@ namespace Ariston
 
         private const float _threshold = 0.01f;
 
-        private bool _hasAnimator;
-
         private bool IsCurrentDeviceMouse
         {
             get
@@ -78,12 +73,9 @@ namespace Ariston
         public float TerminalVelocity { get { return _terminalVelocity; } }
         public float JumpHeight {get { return playerData.JumpHeight; } }
         public float Gravity { get { return playerData.Gravity;} }
-        public float JumpTimeout {get { return playerData.JumpTimeout; } }
-        public float FallTimeout {get { return playerData.FallTimeout; } }
         public float MoveSpeed { get { return playerData.MoveSpeed; } }
         public float SprintSpeed { get {return playerData.SprintSpeed; } }
         public float TargetSpeed { get; set;}
-        public bool HasAnimator { get { return _hasAnimator;} }
         public Animator Animator { get { return _animator; } }
         public int AnimIDSpeed { get { return _animIDSpeed; } }
         public int AnimIDGrounded { get { return _animIDGrounded; } }
@@ -117,6 +109,7 @@ namespace Ariston
                 _mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
             }
 
+            //State Machine
             _states = new PlayerStateFactory(this);
             _currentState = _states.Grounded();
             _currentState.EnterState();
@@ -126,27 +119,25 @@ namespace Ariston
         {
             _cinemachineTargetYaw = cinemachineCameraTarget.transform.rotation.eulerAngles.y;
             
-            _hasAnimator = TryGetComponent(out _animator);
+            _animator = GetComponent<Animator>();
+
             _controller = GetComponent<CharacterController>();
-            // _input = GetComponent<GameInput>();
             _playerInput = GetComponent<PlayerInput>();
 
             AssignAnimationIDs();
             GameInput.Instance.SetCursorLockState(true);
 
-            // reset our timeouts on start
-            _jumpTimeoutDelta = playerData.JumpTimeout;
-            _fallTimeoutDelta = playerData.FallTimeout;
+            // // reset our timeouts on start
+            // _jumpTimeoutDelta = playerData.JumpTimeout;
+            // _fallTimeoutDelta = playerData.FallTimeout;
         }
 
         private void Update()
         {
-            _hasAnimator = TryGetComponent(out _animator);
-
+            //State Machine
             _currentState.UpdateStates();
-            Debug.Log("Current State: " + CurrentState);
+            // Debug.Log("Current State: " + CurrentState);
 
-            // JumpAndGravity();
             GroundedCheck();
             Move();
         }
@@ -171,16 +162,10 @@ namespace Ariston
         private void GroundedCheck()
         {
             // set sphere position, with offset
-            Vector3 spherePosition = new Vector3(transform.position.x, transform.position.y - playerData.GroundedOffset,
-                transform.position.z);
-            IsGrounded = Physics.CheckSphere(spherePosition, playerData.GroundedRadius, playerData.GroundLayers,
-                QueryTriggerInteraction.Ignore);
-
-            // update animator if using character
-            if (_hasAnimator)
-            {
-                _animator.SetBool(_animIDGrounded, IsGrounded);
-            }
+            Vector3 spherePosition = new Vector3(transform.position.x, transform.position.y - playerData.GroundedOffset, transform.position.z);
+            IsGrounded = Physics.CheckSphere(spherePosition, playerData.GroundedRadius, playerData.GroundLayers,QueryTriggerInteraction.Ignore);
+                
+            _animator.SetBool(_animIDGrounded, IsGrounded);
         }
 
         private void CameraRotation()
@@ -200,8 +185,7 @@ namespace Ariston
             _cinemachineTargetPitch = ClampAngle(_cinemachineTargetPitch, playerData.BottomClamp, playerData.TopClamp);
 
             // Cinemachine will follow this target
-            cinemachineCameraTarget.transform.rotation = Quaternion.Euler(_cinemachineTargetPitch + cameraAngleOverride,
-                _cinemachineTargetYaw, 0.0f);
+            cinemachineCameraTarget.transform.rotation = Quaternion.Euler(_cinemachineTargetPitch + cameraAngleOverride, _cinemachineTargetYaw, 0.0f);
         }
 
         private void Move()
@@ -212,17 +196,14 @@ namespace Ariston
             float currentHorizontalSpeed = new Vector3(_controller.velocity.x, 0.0f, _controller.velocity.z).magnitude;
 
             float speedOffset = 0.1f;
-            // float inputMagnitude = _input.analogMovement ? _input.move.magnitude : 1f;
             float inputMagnitude = movementInputVector.magnitude;
 
             // accelerate or decelerate to target speed
-            if (currentHorizontalSpeed < TargetSpeed - speedOffset ||
-                currentHorizontalSpeed > TargetSpeed + speedOffset)
+            if (currentHorizontalSpeed < TargetSpeed - speedOffset || currentHorizontalSpeed > TargetSpeed + speedOffset)
             {
                 // creates curved result rather than a linear one giving a more organic speed change
                 // note T in Lerp is clamped, so we don't need to clamp our speed
-                _speed = Mathf.Lerp(currentHorizontalSpeed, TargetSpeed * inputMagnitude,
-                    Time.deltaTime * playerData.SpeedChangeRate);
+                _speed = Mathf.Lerp(currentHorizontalSpeed, TargetSpeed * inputMagnitude, Time.deltaTime * playerData.SpeedChangeRate);
 
                 // round speed to 3 decimal places
                 _speed = Mathf.Round(_speed * 1000f) / 1000f;
@@ -242,10 +223,8 @@ namespace Ariston
             // if there is a move input rotate player when the player is moving
             if (movementInputVector != Vector2.zero)
             {
-                _targetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg +
-                                  _mainCamera.transform.eulerAngles.y;
-                float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, _targetRotation, ref _rotationVelocity,
-                    playerData.RotationSmoothTime);
+                _targetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg + _mainCamera.transform.eulerAngles.y;
+                float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, _targetRotation, ref _rotationVelocity, playerData.RotationSmoothTime);
 
                 // rotate to face input direction relative to camera position
                 transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
@@ -254,15 +233,10 @@ namespace Ariston
             Vector3 targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
 
             // move the player
-            _controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) +
-                             new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
+            _controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
 
-            // update animator if using character
-            if (_hasAnimator)
-            {
-                _animator.SetFloat(_animIDSpeed, _animationBlend);
-                _animator.SetFloat(_animIDMotionSpeed, inputMagnitude);
-            }
+            _animator.SetFloat(_animIDSpeed, _animationBlend);
+            _animator.SetFloat(_animIDMotionSpeed, inputMagnitude);
         }
 
 
@@ -293,9 +267,7 @@ namespace Ariston
             else Gizmos.color = transparentRed;
 
             // when selected, draw a gizmo in the position of, and matching radius of, the grounded collider
-            Gizmos.DrawSphere(
-                new Vector3(transform.position.x, transform.position.y - playerData.GroundedOffset, transform.position.z),
-                playerData.GroundedRadius);
+            Gizmos.DrawSphere(new Vector3(transform.position.x, transform.position.y - playerData.GroundedOffset, transform.position.z), playerData.GroundedRadius);
         }
 
         private void OnFootstep(AnimationEvent animationEvent)
