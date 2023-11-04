@@ -11,12 +11,11 @@ namespace Ariston
         : base (currentContext, playerStateFactory)
         {
             IsRootState = true;
-            InitializeSubState();
         }
 
         public override void EnterState() 
         {
-            
+            InitializeSubState();
         }
         public override void UpdateState() 
         {
