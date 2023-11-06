@@ -28,7 +28,7 @@ namespace Ariston
             bool isMoving = GameInput.Instance.MovementVector != Vector2.zero;
             bool isSprinting = GameInput.Instance.IsSprintPressed;
 
-            if(!isMoving  && !isSprinting)
+            if(!isMoving)
             {
                 SwitchState(Factory.Idle());
             }

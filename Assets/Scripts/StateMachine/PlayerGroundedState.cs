@@ -11,20 +11,17 @@ namespace Ariston
         : base (currentContext, playerStateFactory)
         {
             IsRootState = true;
-            InitializeSubState();
         }
 
         public override void EnterState() 
         {
-            
+            InitializeSubState();
         }
         public override void UpdateState() 
         {
             HandleGravityError();
             HandleAnimation();
-            // HandleTimeout();
-
-
+            
             CheckSwitchState();
         }
         public override void ExitState() 
@@ -37,7 +34,7 @@ namespace Ariston
             bool isMoving = GameInput.Instance.MovementVector != Vector2.zero;
             bool isSprinting = GameInput.Instance.IsSprintPressed;
 
-            if(!isMoving  && !isSprinting)
+            if(!isMoving)
             {
                 SetSubState(Factory.Idle());
             }
@@ -70,18 +67,6 @@ namespace Ariston
             if (Ctx.VerticalVelocity <= 0)
             {
                 Ctx.VerticalVelocity = -2f;
-            }
-        }
-
-        private void HandleTimeout()
-        {
-            // reset the fall timeout timer
-            Ctx.FallTimeoutDelta = Ctx.FallTimeout;
-
-            // jump timeout
-            if (Ctx.JumpTimeoutDelta >= 0.0f)
-            {
-                Ctx.JumpTimeoutDelta -= Time.deltaTime;
             }
         }
 

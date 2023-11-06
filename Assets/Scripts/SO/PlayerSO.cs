@@ -17,11 +17,11 @@ namespace Ariston.ScriptableObjects
         [Range(0.0f, 0.3f)]
         [SerializeField] private float rotationSmoothTime = 0.12f;
 
-        [Tooltip("Time required to pass before being able to jump again. Set to 0f to instantly jump again")]
-        [SerializeField] private float jumpTimeout = 0.50f;
+        // [Tooltip("Time required to pass before being able to jump again. Set to 0f to instantly jump again")]
+        // [SerializeField] private float jumpTimeout = 0.50f;
 
-        [Tooltip("Time required to pass before entering the fall state. Useful for walking down stairs")]
-        [SerializeField] private float fallTimeout = 0.15f;
+        // [Tooltip("Time required to pass before entering the fall state. Useful for walking down stairs")]
+        // [SerializeField] private float fallTimeout = 0.15f;
 
 
 
@@ -59,8 +59,8 @@ namespace Ariston.ScriptableObjects
 
         //Jump
         public float JumpHeight => jumpHeight;
-        public float JumpTimeout => jumpTimeout;
-        public float FallTimeout => fallTimeout;
+        // public float JumpTimeout => jumpTimeout;
+        // public float FallTimeout => fallTimeout;
 
         //Look
         public float TopClamp => topClamp;
