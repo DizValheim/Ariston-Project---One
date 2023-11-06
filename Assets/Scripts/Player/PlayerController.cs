@@ -12,6 +12,9 @@ namespace Ariston
     [RequireComponent(typeof(PlayerInput))]
     public class PlayerController : MonoBehaviour
     {
+        public float interactionRange = 50f;
+        public LayerMask HoldableLayer;
+        private GameObject heldItem;
         [SerializeField] private PlayerSO playerData;
 
         [SerializeField] private GameObject cinemachineCameraTarget;
@@ -19,6 +22,7 @@ namespace Ariston
         // cinemachine
         private float _cinemachineTargetYaw;
         private float _cinemachineTargetPitch;
+        private float sensitivityMultiplier = 1f;
 
         // player
         private float _speed;
@@ -27,6 +31,7 @@ namespace Ariston
         private float _rotationVelocity;
         private float _verticalVelocity;
         private float _terminalVelocity = 53.0f;
+        private bool rotateOnAim = true;
 
         // timeout deltatime
         private float _jumpTimeoutDelta;
@@ -54,7 +59,6 @@ namespace Ariston
         private GameObject _mainCamera;
 
         private const float _threshold = 0.01f;
-
         private bool _hasAnimator;
 
         private bool IsCurrentDeviceMouse
@@ -93,6 +97,7 @@ namespace Ariston
         public CharacterController CharacterController { get { return _controller; } }
         public float JumpTimeoutDelta {get { return _jumpTimeoutDelta; } set { _jumpTimeoutDelta = value; } }
         public float FallTimeoutDelta {get { return _fallTimeoutDelta; } set { _fallTimeoutDelta = value; } }
+        public GameObject HeldItem {get { return heldItem; } }
 
 
         public bool RequireNewJumpPress {get; set;}
@@ -149,6 +154,10 @@ namespace Ariston
             // JumpAndGravity();
             GroundedCheck();
             Move();
+
+            //Detecting items
+            ItemDetection();
+            // Debug.Log(HeldItem.name);
         }
 
         private void LateUpdate()
@@ -191,8 +200,8 @@ namespace Ariston
                 //Don't multiply mouse input by Time.deltaTime;
                 float deltaTimeMultiplier = IsCurrentDeviceMouse ? 1.0f : Time.deltaTime;
 
-                _cinemachineTargetYaw += GameInput.Instance.LookVector.x * deltaTimeMultiplier;
-                _cinemachineTargetPitch += GameInput.Instance.LookVector.y * deltaTimeMultiplier;
+                _cinemachineTargetYaw += GameInput.Instance.LookVector.x * deltaTimeMultiplier * sensitivityMultiplier;
+                _cinemachineTargetPitch += GameInput.Instance.LookVector.y * deltaTimeMultiplier * sensitivityMultiplier;
             }
 
             // clamp our rotations so our values are limited 360 degrees
@@ -248,7 +257,9 @@ namespace Ariston
                     playerData.RotationSmoothTime);
 
                 // rotate to face input direction relative to camera position
-                transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
+                if(rotateOnAim) {
+                    transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
+                }
             }
 
             Vector3 targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
@@ -316,6 +327,29 @@ namespace Ariston
             // {
             //     AudioSource.PlayClipAtPoint(LandingAudioClip, transform.TransformPoint(_controller.center), FootstepAudioVolume);
             // }
+        }
+
+        
+        public void SetAimSensitivity(float newSensitivity)
+        {
+            sensitivityMultiplier = newSensitivity;
+        }
+
+        public void SetRotationOnAim(bool newRotateOnAim)
+        {
+            rotateOnAim = newRotateOnAim;
+        }
+
+        public void ItemDetection()
+        {
+            // Debug.Log("Detecting...");
+            Collider[] colliders = Physics.OverlapSphere(transform.position, interactionRange, HoldableLayer);
+
+            foreach (Collider detectedLayer in colliders)
+            {
+                heldItem = detectedLayer.gameObject;
+                // Debug.Log(heldItem.name);
+            }
         }
     }
 }

@@ -32,8 +32,6 @@ namespace Ariston.ScriptableObjects
         [Tooltip("How far in degrees can you move the camera down")]
         [SerializeField] private float bottomClamp = -30.0f;
 
-        
-
 
 
         [Header("Grounded Check")]

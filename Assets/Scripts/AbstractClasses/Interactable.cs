@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Ariston
@@ -9,6 +7,16 @@ namespace Ariston
     /// </summary>
     public abstract class Interactable : MonoBehaviour
     {
+        protected virtual void Awake()
+        {
+
+        }
+        
+        protected virtual void Update()
+        {
+
+        }
+
         //Interaction method, to be implemented as per specifics
         protected abstract void Interact();
         

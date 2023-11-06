@@ -51,6 +51,8 @@ namespace Ariston
         public Vector2 MousePosition => Mouse.current.position.ReadValue();
         public bool IsSprintPressed => PlayerInputActions.Player.Sprint.IsPressed();
         public bool IsJumpPressed => PlayerInputActions.Player.Jump.IsPressed();
+        public bool IsAimPressed => PlayerInputActions.Player.Aim.IsPressed();
+        public bool IsUsePressed => PlayerInputActions.Player.Use.IsPressed();
 
         #endregion
 
