@@ -20,6 +20,7 @@ namespace Ariston
         public override void UpdateState() 
         {
             HandleGravityError();
+            Move();
             HandleAnimation();
             
             CheckSwitchState();
@@ -49,11 +50,15 @@ namespace Ariston
         }
         public override void CheckSwitchState()
         {
-            //If Player is grounded and jump is pressed, switch to jump state
-            if(!Ctx.IsGrounded)
+            if(CheckLadder())
+            {
+                SwitchState(Factory.Climb());
+            }
+            else if(!Ctx.IsGrounded)
             {
                 SwitchState(Factory.Fall());
             }
+            //If Player is grounded and jump is pressed, switch to jump state
             else if(GameInput.Instance.IsJumpPressed && !Ctx.RequireNewJumpPress)
             {
                 SwitchState(Factory.Jump());
@@ -75,6 +80,26 @@ namespace Ariston
             // update animator if using character
             Ctx.Animator.SetBool(Ctx.AnimIDJump, false);
             Ctx.Animator.SetBool(Ctx.AnimIDFreeFall, false);
+            Ctx.Animator.SetBool(Ctx.AnimIDClimb, false);
+        }
+
+        void Move()
+        {
+            Ctx.CharacterController.Move(Ctx.TargetDirection.normalized * (Ctx.Speed * Time.deltaTime) + new Vector3(0.0f, Ctx.VerticalVelocity, 0.0f) * Time.deltaTime);
+        }
+
+        bool CheckLadder()
+        {
+            float avoidFloorDistance = 0.1f;
+            float ladderGrabDistance = 0.4f;
+            if(Physics.Raycast(Ctx.transform.position + Vector3.up * avoidFloorDistance, Ctx.TargetDirection, out RaycastHit raycastHit, ladderGrabDistance))
+            {
+                if(raycastHit.transform.TryGetComponent(out Ladder ladder))                    
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         

@@ -19,6 +19,7 @@ namespace Ariston
         public override void UpdateState() 
         {
             HandleGravity();
+            Move();
             HandleAnimation();
 
             CheckSwitchState();
@@ -63,6 +64,10 @@ namespace Ariston
             
             // // Ctx.VerticalVelocity = Ctx.JumpHeight;
     
+        }
+        void Move()
+        {
+            Ctx.CharacterController.Move(Ctx.TargetDirection.normalized * (Ctx.Speed * Time.deltaTime) + new Vector3(0.0f, Ctx.VerticalVelocity, 0.0f) * Time.deltaTime);
         }
         void HandleGravity()
         {
