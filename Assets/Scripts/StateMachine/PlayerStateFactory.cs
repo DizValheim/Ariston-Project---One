@@ -9,7 +9,8 @@ namespace Ariston
         run,
         grounded,
         jump,
-        fall
+        fall,
+        climb
     }
     public class PlayerStateFactory
     {
@@ -25,6 +26,7 @@ namespace Ariston
             _states[PlayerStates.jump] = new PlayerJumpState(_context, this);
             _states[PlayerStates.grounded] = new PlayerGroundedState(_context, this);
             _states[PlayerStates.fall] = new PlayerFallState(_context, this);
+            _states[PlayerStates.climb] = new PlayerClimbState(_context, this);
         }
 
         public PlayerBaseState Idle() 
@@ -50,6 +52,10 @@ namespace Ariston
         public PlayerBaseState Fall()
         {
             return _states[PlayerStates.fall];
+        }
+        public PlayerBaseState Climb()
+        {
+            return _states[PlayerStates.climb];
         }
         
     }

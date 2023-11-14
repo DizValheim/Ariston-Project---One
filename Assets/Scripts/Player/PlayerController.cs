@@ -1,4 +1,5 @@
 ﻿using Ariston.ScriptableObjects;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -25,6 +26,7 @@ namespace Ariston
         private float _speed;
         private float _animationBlend;
         private float _targetRotation = 0.0f;
+        private Vector3 _targetDirection;
         private float _rotationVelocity;
         private float _verticalVelocity;
         private float _terminalVelocity = 53.0f;
@@ -46,6 +48,8 @@ namespace Ariston
         private int _animIDJump;
         private int _animIDFreeFall;
         private int _animIDMotionSpeed;
+        private int _animIDClimb;
+        private int _animIDAtTop;
 
 
         private PlayerInput _playerInput;
@@ -66,6 +70,8 @@ namespace Ariston
         }
 
         public bool IsGrounded = true;
+        public bool IsClimbingLadder = false;
+        
 
         //State Variables
         PlayerBaseState _currentState;
@@ -73,7 +79,7 @@ namespace Ariston
 
         //Getters and Setters
         public PlayerBaseState CurrentState {get { return _currentState; } set { _currentState = value;} }
-        
+        public float Speed { get { return _speed; } set { _speed = value; } }
         public float VerticalVelocity {get { return _verticalVelocity; } set { _verticalVelocity = value;} }
         public float TerminalVelocity { get { return _terminalVelocity; } }
         public float JumpHeight {get { return playerData.JumpHeight; } }
@@ -81,12 +87,16 @@ namespace Ariston
         public float MoveSpeed { get { return playerData.MoveSpeed; } }
         public float SprintSpeed { get {return playerData.SprintSpeed; } }
         public float TargetSpeed { get; set;}
+        public Vector3 TargetDirection { get { return _targetDirection; } set {_targetDirection = value; }}
+        public float TargetRotation { get { return _targetRotation; } set {_targetRotation = value; }}
         public Animator Animator { get { return _animator; } }
         public int AnimIDSpeed { get { return _animIDSpeed; } }
         public int AnimIDGrounded { get { return _animIDGrounded; } }
         public int AnimIDJump { get { return _animIDJump; } }
         public int AnimIDFreeFall { get { return _animIDFreeFall; } }
         public int AnimIDMotionSpeed { get { return _animIDMotionSpeed; } }
+        public int AnimIDClimb { get { return _animIDClimb; } }
+        public int AnimIDAtTop { get { return _animIDAtTop; } }
         public CharacterController CharacterController { get { return _controller; } }
         public float JumpTimeoutDelta {get { return _jumpTimeoutDelta; } set { _jumpTimeoutDelta = value; } }
         public float FallTimeoutDelta {get { return _fallTimeoutDelta; } set { _fallTimeoutDelta = value; } }
@@ -142,7 +152,7 @@ namespace Ariston
         {
             //State Machine
             _currentState.UpdateStates();
-            // Debug.Log("Current State: " + CurrentState);
+            Debug.Log("Current State: " + CurrentState);
 
             GroundedCheck();
             Move();
@@ -167,6 +177,8 @@ namespace Ariston
             _animIDJump = Animator.StringToHash("Jump");
             _animIDFreeFall = Animator.StringToHash("FreeFall");
             _animIDMotionSpeed = Animator.StringToHash("MotionSpeed");
+            _animIDClimb = Animator.StringToHash("Climb");
+            _animIDAtTop = Animator.StringToHash("AtTop");
         }
 
         private void GroundedCheck()
@@ -242,10 +254,10 @@ namespace Ariston
                 }
             }
 
-            Vector3 targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
+            _targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
 
-            // move the player
-            _controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
+            
+            
 
             _animator.SetFloat(_animIDSpeed, _animationBlend);
             _animator.SetFloat(_animIDMotionSpeed, inputMagnitude);
