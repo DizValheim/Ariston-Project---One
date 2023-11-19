@@ -43,15 +43,15 @@
                 },
                 {
                     "name": "Aim",
-                    "type": "PassThrough",
+                    "type": "Button",
                     "id": "bad5bbc4-de81-4df3-9655-9ab81a6b3dde",
-                    "expectedControlType": "",
+                    "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Use",
+                    "name": "Interact",
                     "type": "Button",
                     "id": "cac73d3d-e891-49f0-abd7-f355645d040b",
                     "expectedControlType": "Button",
@@ -255,7 +255,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "KeyboardMouse",
-                    "action": "Use",
+                    "action": "Interact",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

@@ -1,4 +1,3 @@
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Animations.Rigging;
 
@@ -6,58 +5,82 @@ namespace Ariston
 {
     public class RigController: MonoBehaviour
     {
-        [SerializeField] private GameObject head;
-        [SerializeField] private GameObject leftUpperArm;
-        [SerializeField] private GameObject leftLowerArm;
-        [SerializeField] private GameObject rightUpperArm;
-        [SerializeField] private GameObject rightLowerArm;
-        [SerializeField] private GameObject legs;
+        [SerializeField] private Rig headRig;
+        [SerializeField] private Rig handsRig;
+        [SerializeField] private Rig itemRig;
+        [SerializeField] private Rig alternateItemRig;
+        [SerializeField] private Rig legsRig;
+        [SerializeField] private float setupDuration = 0.2f;
 
-        private Transform leftUpperArmIKTarget;
-        private Transform leftUpperArmIKHint;
-        private Transform rightUpperArmAim;
-        private Transform rightLowerArmAim;
+        private GameObject leftHandConstraint;
+        private GameObject rightHandConstraint;
 
-        TwoBoneIKConstraint leftUpperArmIKConstraint = new();
-        MultiAimConstraint rightUpperArmAimConstraint = new();
-        MultiAimConstraint rightLowerArmAimConstraint = new();
+        private Transform leftHandIKTarget;
+        private Transform leftHandIKHint;
+        private Transform rightHandIKTarget;
+        private Transform rightHandIKHint;
+
+        TwoBoneIKConstraint leftHandIKConstraint = new();
+        TwoBoneIKConstraint rightHandIKConstraint = new();
 
         void Awake()
         {
-            leftUpperArmIKConstraint = leftUpperArm.GetComponent<TwoBoneIKConstraint>();
-            rightUpperArmAimConstraint = rightUpperArm.GetComponent<MultiAimConstraint>();
-            rightLowerArmAimConstraint = rightLowerArm.GetComponent<MultiAimConstraint>();
-            
-            RigReset();
+            leftHandConstraint = handsRig.transform.GetChild(0).gameObject;
+            rightHandConstraint = handsRig.transform.GetChild(1).gameObject;
 
-            leftUpperArmIKTarget = leftUpperArm.transform.GetChild(0);
-            leftUpperArmIKHint = leftUpperArm.transform.GetChild(1);
-            rightUpperArmAim = rightUpperArm.transform.GetChild(0);
-            rightLowerArmAim = rightLowerArm.transform.GetChild(0);
+            leftHandIKConstraint = leftHandConstraint.GetComponent<TwoBoneIKConstraint>();
+            rightHandIKConstraint = rightHandConstraint.GetComponent<TwoBoneIKConstraint>();
+            
+            RigSetup1();
+
+            leftHandIKTarget = leftHandConstraint.transform.GetChild(0);
+            leftHandIKHint = leftHandConstraint.transform.GetChild(1);
+            rightHandIKTarget = rightHandConstraint.transform.GetChild(0);
+            rightHandIKHint = rightHandConstraint.transform.GetChild(1);
         }
 
-        public void RigSetup(GameObject[] ob)
+        public void RigSetup1()
+        {
+            headRig.weight = 0;
+            handsRig.weight = 0;
+            itemRig.weight = 0;
+            alternateItemRig.weight = 0;
+            // legsRig.weight = 0;
+        }
+
+        public void RigSetup2(GameObject[] ob)
         {   
             TargetsTransfer(ob);
 
-            leftUpperArmIKConstraint.weight = 1;
-            rightUpperArmAimConstraint.weight = 1;
-            rightLowerArmAimConstraint.weight = 1;
+            itemRig.weight += setupDuration;
+            handsRig.weight += setupDuration;
         }
 
-        public void RigReset()
+        public void RigSetup3(bool condition, GameObject[] ob)
         {
-            leftUpperArmIKConstraint.weight = 0;
-            rightUpperArmAimConstraint.weight = 0;
-            rightLowerArmAimConstraint.weight = 0;
+            if(condition)
+            {
+                // Debug.Log("Right mouse pressed");
+                
+                TargetsTransfer(ob);
+                itemRig.weight -= setupDuration;
+                alternateItemRig.weight += setupDuration;
+                headRig.weight += setupDuration;
+            }
+            else
+            {
+                alternateItemRig.weight -= setupDuration;
+                headRig.weight -= setupDuration;
+                RigSetup2(ob);
+            }
         }
 
-        private void TargetsTransfer(GameObject[] ob)
+        private void TargetsTransfer(GameObject[] heldObject)
         {
-            leftUpperArmIKTarget.SetPositionAndRotation(ob[0].transform.position, ob[0].transform.rotation);
-            leftUpperArmIKHint.SetPositionAndRotation(ob[1].transform.position, ob[1].transform.rotation);
-            rightUpperArmAim.SetPositionAndRotation(ob[2].transform.position, ob[2].transform.rotation);
-            rightLowerArmAim.SetPositionAndRotation(ob[3].transform.position, ob[3].transform.rotation);
+            leftHandIKTarget.SetPositionAndRotation(heldObject[0].transform.position, heldObject[0].transform.rotation);
+            leftHandIKHint.SetPositionAndRotation(heldObject[1].transform.position, heldObject[1].transform.rotation);
+            rightHandIKTarget.SetPositionAndRotation(heldObject[2].transform.position, heldObject[2].transform.rotation);
+            rightHandIKHint.SetPositionAndRotation(heldObject[3].transform.position, heldObject[3].transform.rotation);
         }
     }
 }

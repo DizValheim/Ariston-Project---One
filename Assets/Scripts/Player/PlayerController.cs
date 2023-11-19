@@ -1,5 +1,5 @@
-﻿using Ariston.ScriptableObjects;
-using JetBrains.Annotations;
+using Ariston.ScriptableObjects;
+using Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -10,12 +10,17 @@ namespace Ariston
     [RequireComponent(typeof(PlayerInput))]
     public class PlayerController : MonoBehaviour
     {
-        public float interactionRange = 50f;
-        public LayerMask HoldableLayer;
-        private GameObject heldItem;
-        [SerializeField] private PlayerSO playerData;
-
+        
         [SerializeField] private GameObject cinemachineCameraTarget;
+        [SerializeField] private CinemachineVirtualCamera playerAimVirtualCamera;
+        [SerializeField] private float aimSensitivity;
+        [SerializeField] private float normalSensitivity;
+        [SerializeField] private LayerMask layerToHit = new();
+        [Range (0f, 100f)] public float interactionRange;
+        [SerializeField] private PlayerSO playerData;
+        [SerializeField] private LayerMask holdableLayer;
+        
+        private GameObject heldItem;
 
         // cinemachine
         private float _cinemachineTargetYaw;
@@ -101,6 +106,7 @@ namespace Ariston
         public float JumpTimeoutDelta {get { return _jumpTimeoutDelta; } set { _jumpTimeoutDelta = value; } }
         public float FallTimeoutDelta {get { return _fallTimeoutDelta; } set { _fallTimeoutDelta = value; } }
         public GameObject HeldItem {get { return heldItem; } }
+        public LayerMask HoldableLayer { get { return holdableLayer; } }
 
 
         public bool RequireNewJumpPress {get; set;}
@@ -152,14 +158,14 @@ namespace Ariston
         {
             //State Machine
             _currentState.UpdateStates();
-            Debug.Log("Current State: " + CurrentState);
 
             GroundedCheck();
             Move();
 
+            AimCamera();
+
             //Detecting items
             ItemDetection();
-            // Debug.Log(HeldItem.name);
         }
 
         private void LateUpdate()
@@ -336,5 +342,42 @@ namespace Ariston
                 // Debug.Log(heldItem.name);
             }
         }
+
+        private void AimCamera()
+        {
+            Vector3 mouseWorldPosition = Vector3.zero;
+
+            //Gets the center point of the screen
+            Vector2 screenCenterPoint = new(Screen.width / 2f, Screen.height / 2f);
+            //Casts a ray from camera to screenCenterPoint
+            Ray ray = Camera.main.ScreenPointToRay(screenCenterPoint);
+            if(Physics.Raycast(ray, out RaycastHit raycastHit, 999f, layerToHit)) {
+                mouseWorldPosition = raycastHit.point;
+            }
+
+            //Aim mode
+            if(GameInput.Instance.IsAimPressed) {
+                playerAimVirtualCamera.gameObject.SetActive(true);
+                SetAimSensitivity(aimSensitivity);
+                SetRotationOnAim(false);
+
+                //Setting up the aim direction
+                Vector3 worldAimPoint = mouseWorldPosition;
+                worldAimPoint.y = transform.position.y;
+                Vector3 aimDirection = (worldAimPoint - transform.position).normalized;
+
+                //Rotating player towards aim direction
+                transform.forward = Vector3.Lerp(transform.forward, aimDirection, Time.deltaTime * 15f);
+            }
+
+            //Normal mode
+            else {
+                playerAimVirtualCamera.gameObject.SetActive(false);
+                SetAimSensitivity(normalSensitivity);
+                SetRotationOnAim(true);
+            }
+        }
+
+        void OnAnimatorMove() {}
     }
 }

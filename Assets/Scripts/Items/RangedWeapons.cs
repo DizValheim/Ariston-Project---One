@@ -1,21 +1,17 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Ariston
 {
     public class RangedWeapons : Item
     {
-        // Start is called before the first frame update
-        void Start()
+        protected override void Awake()
         {
-        
+            base.Awake();
         }
 
-        // Update is called once per frame
-        void Update()
+        protected override void Update()
         {
-        
+            base.Update();
         }
     }
 }

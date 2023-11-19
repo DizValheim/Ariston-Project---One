@@ -1,5 +1,6 @@
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Ariston
 {
@@ -10,10 +11,12 @@ namespace Ariston
     {
         [SerializeField] private PlayerController playerController;
         [SerializeField] private GameObject itemHolder;
+        [SerializeField] private GameObject worldObjects;
 
         private RigController rigController;
-        private GameObject targets, idleTargets;
-
+        private GameObject targets;
+        private int interactCount = 0;
+        
         protected override void Awake()
         {
             rigController = playerController.GetComponent<RigController>();
@@ -21,18 +24,27 @@ namespace Ariston
 
         protected override void Update()
         {
-            if(GameInput.Instance.IsUsePressed)
+            if(GameInput.Instance.IsInteractPressed)
             {
                 // Debug.Log("Use");
                 Interact();
+                interactCount = 1;                
+            }
+
+            if(interactCount == 1)
+            {
+                rigController.RigSetup3(GameInput.Instance.IsAimPressed, TargetsFinder());
             }
         }
 
         protected override void Interact()
         {
             // Debug.Log("Interact");
-            targets = ChildFinder(playerController.HeldItem, 1);
-            PickUp();
+            if(playerController.HeldItem != null)
+            {
+                targets = ChildFinder(playerController.HeldItem, 1);
+                PickUp();
+            }
         }
 
         protected virtual void PickUp() 
@@ -40,15 +52,8 @@ namespace Ariston
             // Debug.Log("Hello Darkness, you're my friend!!!");
             playerController.HeldItem.transform.SetParent(itemHolder.transform);
             playerController.HeldItem.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
-            
-            idleTargets = ChildFinder(targets, 0);
-            GameObject[] idleChildren = new GameObject[4];
-            for(int i=0; i<4; i++)
-            {
-                idleChildren[i] = ChildFinder(idleTargets, i);
-            }
 
-            rigController.RigSetup(idleChildren);
+            rigController.RigSetup2(TargetsFinder());
         }
        
         public virtual void Drop() {}
@@ -61,5 +66,14 @@ namespace Ariston
             return child.gameObject;
         }
 
+        private GameObject[] TargetsFinder()
+        {
+            GameObject[] idleChildren = new GameObject[4];
+            for(int i=0; i<4; i++)
+            {
+                idleChildren[i] = ChildFinder(targets, i);
+            }
+            return idleChildren;
+        }
     }
 }

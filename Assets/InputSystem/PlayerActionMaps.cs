@@ -67,15 +67,15 @@ namespace Ariston
                 },
                 {
                     ""name"": ""Aim"",
-                    ""type"": ""PassThrough"",
+                    ""type"": ""Button"",
                     ""id"": ""bad5bbc4-de81-4df3-9655-9ab81a6b3dde"",
-                    ""expectedControlType"": """",
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""Use"",
+                    ""name"": ""Interact"",
                     ""type"": ""Button"",
                     ""id"": ""cac73d3d-e891-49f0-abd7-f355645d040b"",
                     ""expectedControlType"": ""Button"",
@@ -279,7 +279,7 @@ namespace Ariston
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""KeyboardMouse"",
-                    ""action"": ""Use"",
+                    ""action"": ""Interact"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -343,7 +343,7 @@ namespace Ariston
             m_Player_Jump = m_Player.FindAction("Jump", throwIfNotFound: true);
             m_Player_Sprint = m_Player.FindAction("Sprint", throwIfNotFound: true);
             m_Player_Aim = m_Player.FindAction("Aim", throwIfNotFound: true);
-            m_Player_Use = m_Player.FindAction("Use", throwIfNotFound: true);
+            m_Player_Interact = m_Player.FindAction("Interact", throwIfNotFound: true);
         }
 
         public void Dispose()
@@ -410,7 +410,7 @@ namespace Ariston
         private readonly InputAction m_Player_Jump;
         private readonly InputAction m_Player_Sprint;
         private readonly InputAction m_Player_Aim;
-        private readonly InputAction m_Player_Use;
+        private readonly InputAction m_Player_Interact;
         public struct PlayerActions
         {
             private @PlayerInputActions m_Wrapper;
@@ -420,7 +420,7 @@ namespace Ariston
             public InputAction @Jump => m_Wrapper.m_Player_Jump;
             public InputAction @Sprint => m_Wrapper.m_Player_Sprint;
             public InputAction @Aim => m_Wrapper.m_Player_Aim;
-            public InputAction @Use => m_Wrapper.m_Player_Use;
+            public InputAction @Interact => m_Wrapper.m_Player_Interact;
             public InputActionMap Get() { return m_Wrapper.m_Player; }
             public void Enable() { Get().Enable(); }
             public void Disable() { Get().Disable(); }
@@ -445,9 +445,9 @@ namespace Ariston
                 @Aim.started += instance.OnAim;
                 @Aim.performed += instance.OnAim;
                 @Aim.canceled += instance.OnAim;
-                @Use.started += instance.OnUse;
-                @Use.performed += instance.OnUse;
-                @Use.canceled += instance.OnUse;
+                @Interact.started += instance.OnInteract;
+                @Interact.performed += instance.OnInteract;
+                @Interact.canceled += instance.OnInteract;
             }
 
             private void UnregisterCallbacks(IPlayerActions instance)
@@ -467,9 +467,9 @@ namespace Ariston
                 @Aim.started -= instance.OnAim;
                 @Aim.performed -= instance.OnAim;
                 @Aim.canceled -= instance.OnAim;
-                @Use.started -= instance.OnUse;
-                @Use.performed -= instance.OnUse;
-                @Use.canceled -= instance.OnUse;
+                @Interact.started -= instance.OnInteract;
+                @Interact.performed -= instance.OnInteract;
+                @Interact.canceled -= instance.OnInteract;
             }
 
             public void RemoveCallbacks(IPlayerActions instance)
@@ -530,7 +530,7 @@ namespace Ariston
             void OnJump(InputAction.CallbackContext context);
             void OnSprint(InputAction.CallbackContext context);
             void OnAim(InputAction.CallbackContext context);
-            void OnUse(InputAction.CallbackContext context);
+            void OnInteract(InputAction.CallbackContext context);
         }
     }
 }

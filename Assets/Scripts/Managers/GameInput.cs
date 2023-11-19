@@ -52,7 +52,7 @@ namespace Ariston
         public bool IsSprintPressed => PlayerInputActions.Player.Sprint.IsPressed();
         public bool IsJumpPressed => PlayerInputActions.Player.Jump.IsPressed();
         public bool IsAimPressed => PlayerInputActions.Player.Aim.IsPressed();
-        public bool IsUsePressed => PlayerInputActions.Player.Use.IsPressed();
+        public bool IsInteractPressed => PlayerInputActions.Player.Interact.IsPressed();
 
         #endregion
 
