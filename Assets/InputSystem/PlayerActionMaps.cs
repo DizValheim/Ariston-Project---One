@@ -82,6 +82,24 @@ namespace Ariston
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Fire"",
+                    ""type"": ""Button"",
+                    ""id"": ""3b3a3e70-5210-4cca-977d-91637fbda262"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Drop"",
+                    ""type"": ""Button"",
+                    ""id"": ""0ab18bf8-59b9-42aa-9b1b-2871cab9a87c"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -282,6 +300,28 @@ namespace Ariston
                     ""action"": ""Interact"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c40a7c5d-babf-4183-ade9-1622427e2c67"",
+                    ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""Fire"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""5bce6a27-91db-41fb-ac8b-8b4d7daa9a70"",
+                    ""path"": ""<Keyboard>/g"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""Drop"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -344,6 +384,8 @@ namespace Ariston
             m_Player_Sprint = m_Player.FindAction("Sprint", throwIfNotFound: true);
             m_Player_Aim = m_Player.FindAction("Aim", throwIfNotFound: true);
             m_Player_Interact = m_Player.FindAction("Interact", throwIfNotFound: true);
+            m_Player_Fire = m_Player.FindAction("Fire", throwIfNotFound: true);
+            m_Player_Drop = m_Player.FindAction("Drop", throwIfNotFound: true);
         }
 
         public void Dispose()
@@ -411,6 +453,8 @@ namespace Ariston
         private readonly InputAction m_Player_Sprint;
         private readonly InputAction m_Player_Aim;
         private readonly InputAction m_Player_Interact;
+        private readonly InputAction m_Player_Fire;
+        private readonly InputAction m_Player_Drop;
         public struct PlayerActions
         {
             private @PlayerInputActions m_Wrapper;
@@ -421,6 +465,8 @@ namespace Ariston
             public InputAction @Sprint => m_Wrapper.m_Player_Sprint;
             public InputAction @Aim => m_Wrapper.m_Player_Aim;
             public InputAction @Interact => m_Wrapper.m_Player_Interact;
+            public InputAction @Fire => m_Wrapper.m_Player_Fire;
+            public InputAction @Drop => m_Wrapper.m_Player_Drop;
             public InputActionMap Get() { return m_Wrapper.m_Player; }
             public void Enable() { Get().Enable(); }
             public void Disable() { Get().Disable(); }
@@ -448,6 +494,12 @@ namespace Ariston
                 @Interact.started += instance.OnInteract;
                 @Interact.performed += instance.OnInteract;
                 @Interact.canceled += instance.OnInteract;
+                @Fire.started += instance.OnFire;
+                @Fire.performed += instance.OnFire;
+                @Fire.canceled += instance.OnFire;
+                @Drop.started += instance.OnDrop;
+                @Drop.performed += instance.OnDrop;
+                @Drop.canceled += instance.OnDrop;
             }
 
             private void UnregisterCallbacks(IPlayerActions instance)
@@ -470,6 +522,12 @@ namespace Ariston
                 @Interact.started -= instance.OnInteract;
                 @Interact.performed -= instance.OnInteract;
                 @Interact.canceled -= instance.OnInteract;
+                @Fire.started -= instance.OnFire;
+                @Fire.performed -= instance.OnFire;
+                @Fire.canceled -= instance.OnFire;
+                @Drop.started -= instance.OnDrop;
+                @Drop.performed -= instance.OnDrop;
+                @Drop.canceled -= instance.OnDrop;
             }
 
             public void RemoveCallbacks(IPlayerActions instance)
@@ -531,6 +589,8 @@ namespace Ariston
             void OnSprint(InputAction.CallbackContext context);
             void OnAim(InputAction.CallbackContext context);
             void OnInteract(InputAction.CallbackContext context);
+            void OnFire(InputAction.CallbackContext context);
+            void OnDrop(InputAction.CallbackContext context);
         }
     }
 }

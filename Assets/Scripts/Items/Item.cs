@@ -24,7 +24,7 @@ namespace Ariston
 
         protected override void Update()
         {
-            if(GameInput.Instance.IsInteractPressed)
+            if(GameInput.Instance.IsInteractPressed && playerController.HeldItem != null)
             {
                 // Debug.Log("Use");
                 Interact();
@@ -33,18 +33,22 @@ namespace Ariston
 
             if(interactCount == 1)
             {
-                rigController.RigSetup3(GameInput.Instance.IsAimPressed, TargetsFinder());
+                rigController.UseRig(GameInput.Instance.IsAimPressed, TargetsFinder());
+                if(GameInput.Instance.IsDropPressed)
+                {
+                    // Debug.Log(interactCount);
+                    Drop();
+                    rigController.IdleRig();
+                    interactCount = 0;
+                }
             }
         }
 
         protected override void Interact()
         {
             // Debug.Log("Interact");
-            if(playerController.HeldItem != null)
-            {
-                targets = ChildFinder(playerController.HeldItem, 1);
-                PickUp();
-            }
+            targets = ChildFinder(playerController.HeldItem, 1);
+            PickUp();
         }
 
         protected virtual void PickUp() 
@@ -53,12 +57,19 @@ namespace Ariston
             playerController.HeldItem.transform.SetParent(itemHolder.transform);
             playerController.HeldItem.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
 
-            rigController.RigSetup2(TargetsFinder());
+            rigController.HoldRig(TargetsFinder());
+        }
+        
+        public virtual void Use() 
+        {
+
         }
        
-        public virtual void Drop() {}
-        
-        public virtual void Use() {}
+        public virtual void Drop() 
+        {
+            playerController.HeldItem.transform.SetParent(worldObjects.transform);
+            playerController.HeldItem.transform.SetPositionAndRotation(new Vector3(playerController.HeldItem.transform.position.x, 0.0104f, playerController.HeldItem.transform.position.z), Quaternion.Euler(new Vector3( 90f, playerController.HeldItem.transform.rotation.y, playerController.HeldItem.transform.rotation.z)));
+        }
 
         private GameObject ChildFinder(GameObject parent, int childIndex)
         {

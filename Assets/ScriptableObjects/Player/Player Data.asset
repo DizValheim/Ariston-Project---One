@@ -16,9 +16,7 @@ MonoBehaviour:
   sprintSpeed: 5.335
   speedChangeRate: 10
   jumpHeight: 1.2
-  rotationSmoothTime: 0.12
-  jumpTimeout: 0.5
-  fallTimeout: 0.15
+  rotationSmoothTime: 0.173
   topClamp: 70
   bottomClamp: -30
   groundLayers:

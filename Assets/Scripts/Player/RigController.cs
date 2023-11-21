@@ -31,7 +31,7 @@ namespace Ariston
             leftHandIKConstraint = leftHandConstraint.GetComponent<TwoBoneIKConstraint>();
             rightHandIKConstraint = rightHandConstraint.GetComponent<TwoBoneIKConstraint>();
             
-            RigSetup1();
+            IdleRig();
 
             leftHandIKTarget = leftHandConstraint.transform.GetChild(0);
             leftHandIKHint = leftHandConstraint.transform.GetChild(1);
@@ -39,7 +39,7 @@ namespace Ariston
             rightHandIKHint = rightHandConstraint.transform.GetChild(1);
         }
 
-        public void RigSetup1()
+        public void IdleRig()
         {
             headRig.weight = 0;
             handsRig.weight = 0;
@@ -48,7 +48,7 @@ namespace Ariston
             // legsRig.weight = 0;
         }
 
-        public void RigSetup2(GameObject[] ob)
+        public void HoldRig(GameObject[] ob)
         {   
             TargetsTransfer(ob);
 
@@ -56,7 +56,7 @@ namespace Ariston
             handsRig.weight += setupDuration;
         }
 
-        public void RigSetup3(bool condition, GameObject[] ob)
+        public void UseRig(bool condition, GameObject[] ob)
         {
             if(condition)
             {
@@ -71,7 +71,7 @@ namespace Ariston
             {
                 alternateItemRig.weight -= setupDuration;
                 headRig.weight -= setupDuration;
-                RigSetup2(ob);
+                HoldRig(ob);
             }
         }
 

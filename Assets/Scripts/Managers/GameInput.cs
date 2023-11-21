@@ -53,7 +53,9 @@ namespace Ariston
         public bool IsJumpPressed => PlayerInputActions.Player.Jump.IsPressed();
         public bool IsAimPressed => PlayerInputActions.Player.Aim.IsPressed();
         public bool IsInteractPressed => PlayerInputActions.Player.Interact.IsPressed();
-
+        public bool IsFirePressed => PlayerInputActions.Player.Fire.IsPressed();
+        public bool IsDropPressed => PlayerInputActions.Player.Drop.IsPressed();
+        
         #endregion
 
         #region Custom Functions
